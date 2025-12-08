@@ -1,0 +1,8 @@
+{
+    "name": "battle-root",
+    "private": true,
+    "scripts": {
+        "build": "cd frontend && yarn build",
+        "dev": "cd frontend && yarn dev"
+    }
+}
