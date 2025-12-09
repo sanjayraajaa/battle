@@ -1,8 +1,10 @@
 
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useFrappeAuth } from 'frappe-react-sdk';
+import { useEffect } from 'react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Projects from './pages/Projects';
 import { SidebarLayout } from './components/Sidebar';
 import './App.css';
 
@@ -61,6 +63,7 @@ function App() {
         {/* Private Routes (Wrapped in Sidebar) */}
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/projects" element={<Projects />} />
           {/* Add more private routes here */}
         </Route>
       </Routes>

@@ -10,6 +10,7 @@ import {
   GalleryVerticalEnd,
   Command,
   AudioWaveform,
+  FolderKanban,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -41,6 +42,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       },
     ],
     navMain: [
+      {
+        title: "Projects",
+        url: "/projects",
+        icon: FolderKanban,
+      },
       {
         title: "Dashboard",
         url: "/",

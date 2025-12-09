@@ -7,7 +7,7 @@ import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <FrappeProvider>
+    <FrappeProvider enableSocket={false}>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
         <App />
       </ThemeProvider>

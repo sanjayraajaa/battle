@@ -251,4 +251,7 @@ app_license = "mit"
 # ignore_translatable_strings_from = []
 
 
-website_route_rules = [{"from_route": "/battle", "to_route": "frontend"}]
+website_route_rules = [
+    {"from_route": "/battle/<path:app_path>", "to_route": "frontend"},
+    {"from_route": "/battle", "to_route": "frontend"},
+]
