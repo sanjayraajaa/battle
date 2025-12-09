@@ -1,46 +1,71 @@
-import { useState } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
 
-function Battle() {
-  const [count, setCount] = useState(0)
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { useFrappeAuth } from 'frappe-react-sdk';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import { SidebarLayout } from './components/Sidebar';
+import './App.css';
 
+const PrivateRoute = () => {
+  const { currentUser, isLoading } = useFrappeAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  // If not logged in, redirect to login
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // If logged in, render child routes inside Sidebar Layout
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <SidebarLayout>
+      <Outlet />
+    </SidebarLayout>
+  );
+};
+
+const PublicRoute = () => {
+  const { currentUser, isLoading } = useFrappeAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
       </div>
-      <h1>Vite + React (in Frappe /battle)</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    );
+  }
+
+  // If logged in, redirect to dashboard
+  if (currentUser) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+};
 
 function App() {
   return (
     <BrowserRouter basename="/battle">
       <Routes>
-        <Route path="/" element={<Battle />} />
+        {/* Public Routes */}
+        <Route element={<PublicRoute />}>
+          <Route path="/login" element={<Login />} />
+        </Route>
+
+        {/* Private Routes (Wrapped in Sidebar) */}
+        <Route element={<PrivateRoute />}>
+          <Route path="/" element={<Dashboard />} />
+          {/* Add more private routes here */}
+        </Route>
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;
