@@ -47,41 +47,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         url: "/projects",
         icon: FolderKanban,
       },
-      {
-        title: "Dashboard",
-        url: "/",
-        icon: Home,
-      },
-      {
-        title: "Sales",
-        url: "/sales",
-        icon: DollarSign,
-      },
-      {
-        title: "View Site",
-        url: "/view-site",
-        icon: Monitor,
-      },
-      {
-        title: "Products",
-        url: "/products",
-        icon: ShoppingCart,
-      },
-      {
-        title: "Tags",
-        url: "/tags",
-        icon: Tag,
-      },
-      {
-        title: "Analytics",
-        url: "/analytics",
-        icon: BarChart,
-      },
-      {
-        title: "Members",
-        url: "/members",
-        icon: Users,
-      },
     ],
   }
 
