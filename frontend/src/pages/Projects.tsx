@@ -1,5 +1,5 @@
 import { useFrappeGetDocList, useFrappeGetDoc } from 'frappe-react-sdk';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { LayoutGrid, List, FolderKanban, Calendar, Plus, Search, Filter, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -230,13 +230,13 @@ const Projects = () => {
             </div>
 
             {/* Filters Bar */}
-            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
-                <div className="flex flex-1 flex-col md:flex-row gap-4 w-full md:w-auto items-center">
+            <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
+                <div className="flex flex-1 flex-col md:flex-row gap-4 w-full md:w-auto items-stretch md:items-center">
                     <div className="relative w-full md:w-64">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Search projects..."
-                            className="pl-9"
+                            className="pl-9 w-full"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -245,7 +245,7 @@ const Projects = () => {
                     <div className="flex gap-2 w-full md:w-auto">
                         <Popover open={isFilterOpen} onOpenChange={handleFilterOpenChange}>
                             <PopoverTrigger asChild>
-                                <Button variant="outline" className="border-dashed">
+                                <Button variant="outline" className="border-dashed flex-1 md:flex-none justify-start md:justify-center">
                                     <Filter className="mr-2 h-4 w-4" />
                                     Filters
                                     {filters.length > 0 && (
@@ -255,7 +255,7 @@ const Projects = () => {
                                     )}
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-[600px]" align="start">
+                            <PopoverContent className="w-[calc(100vw-2rem)] md:w-[600px]" align="start">
                                 <FrappeFilter
                                     fields={availableFields}
                                     filters={tempFilters}
@@ -267,16 +267,16 @@ const Projects = () => {
                         </Popover>
 
                         {(filters.length > 0 || searchQuery) && (
-                            <Button variant="ghost" size="icon" onClick={handleClearFilters} title="Clear Filters">
+                            <Button variant="ghost" size="icon" onClick={handleClearFilters} title="Clear Filters" className="shrink-0">
                                 <X className="h-4 w-4" />
                             </Button>
                         )}
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full md:w-auto">
                     <Select value={viewMode} onValueChange={(v: 'card' | 'list') => setViewMode(v)}>
-                        <SelectTrigger className="w-[140px]">
+                        <SelectTrigger className="w-full md:w-[140px]">
                             <SelectValue placeholder="View" />
                         </SelectTrigger>
                         <SelectContent>
