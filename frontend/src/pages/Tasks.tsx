@@ -8,13 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { FrappeFilter } from "@/components/frappe-filter";
+import { FrappeFilter, type Filter as FilterType } from "@/components/frappe-filter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
 import { DataTable } from "@/components/data-table/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -129,8 +132,34 @@ const Tasks = () => {
 
     const columns: ColumnDef<any>[] = [
         {
+            id: "select",
+            header: ({ table }) => (
+                <Checkbox
+                    checked={
+                        table.getIsAllPageRowsSelected() ||
+                        (table.getIsSomePageRowsSelected() && "indeterminate")
+                    }
+                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                    aria-label="Select all"
+                    className="translate-y-[2px]"
+                />
+            ),
+            cell: ({ row }) => (
+                <Checkbox
+                    checked={row.getIsSelected()}
+                    onCheckedChange={(value) => row.toggleSelected(!!value)}
+                    aria-label="Select row"
+                    className="translate-y-[2px]"
+                />
+            ),
+            enableSorting: false,
+            enableHiding: false,
+        },
+        {
             accessorKey: "subject",
-            header: "Subject",
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title="Subject" />
+            ),
             cell: ({ row }) => (
                 <div className="flex flex-col">
                     <span className="font-medium cursor-pointer hover:underline" onClick={() => handleEdit(row.original)}>
@@ -142,91 +171,70 @@ const Tasks = () => {
         },
         {
             accessorKey: "project",
-            header: "Project",
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title="Project" />
+            ),
         },
         {
             accessorKey: "status",
-            header: "Status",
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title="Status" />
+            ),
             cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
+            filterFn: (row, id, value) => {
+                return value.includes(row.getValue(id))
+            },
         },
         {
             accessorKey: "priority",
-            header: "Priority",
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title="Priority" />
+            ),
             cell: ({ row }) => {
                 const priority = row.getValue("priority") as string;
                 return (
-                    <span className={`font-medium ${priority === 'High' || priority === 'Urgent' ? 'text-orange-500' :
-                        priority === 'Medium' ? 'text-blue-500' :
-                            'text-green-500'
+                    <Badge variant="outline" className={`font-normal ${priority === 'High' || priority === 'Urgent' ? 'border-orange-500 text-orange-600 bg-orange-50 dark:bg-orange-950/20' :
+                        priority === 'Medium' ? 'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-950/20' :
+                            'border-green-500 text-green-600 bg-green-50 dark:bg-green-950/20'
                         }`}>
                         {priority || 'Medium'}
-                    </span>
+                    </Badge>
                 );
+            },
+            filterFn: (row, id, value) => {
+                return value.includes(row.getValue(id))
             },
         },
         {
             accessorKey: "exp_end_date",
-            header: "Due Date",
+            header: ({ column }) => (
+                <DataTableColumnHeader column={column} title="Due Date" />
+            ),
             cell: ({ row }) => {
                 const date = row.getValue("exp_end_date") as string;
                 if (!date) return <span className="text-muted-foreground">-</span>;
-                return new Date(date).toLocaleDateString();
+                return (
+                    <div className="flex items-center text-muted-foreground">
+                        <Calendar className="mr-2 h-3.5 w-3.5" />
+                        {new Date(date).toLocaleDateString()}
+                    </div>
+                );
             },
         },
         {
             id: "actions",
-            cell: ({ row }) => {
-                return (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleEdit(row.original)}>
-                                Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(row.original.name)}>
-                                Copy ID
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )
-            },
+            cell: ({ row }) => <DataTableRowActions row={row} />,
         },
     ];
 
+    const handleCreateWithStatus = (status: string) => {
+        setEditingTask({ status } as any);
+        setIsSheetOpen(true);
+    };
+
     return (
         <div className="flex flex-col gap-6 p-8 h-full max-h-screen overflow-hidden min-w-0">
-            <div className="flex-none flex items-center justify-between">
 
-                <div className="flex items-center gap-2">
-                    <Sheet open={isSheetOpen} onOpenChange={handleOpenChange}>
-                        <SheetTrigger asChild>
-                            <Button onClick={handleCreate}>
-                                <Plus className="mr-2 h-4 w-4" /> Create Task
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent className="sm:max-w-[600px] overflow-y-auto">
-                            <SheetHeader>
-                                <SheetTitle>{editingTask ? 'Edit Task' : 'Create Task'}</SheetTitle>
-                                <SheetDescription>
-                                    {editingTask ? 'Make changes to your task here.' : 'Add a new task to your workspace.'}
-                                </SheetDescription>
-                            </SheetHeader>
-                            <TaskForm
-                                key={editingTask?.name || `new-${refreshKey}`}
-                                initialData={editingTask}
-                                onSuccess={handleSuccess}
-                            />
-                        </SheetContent>
-                    </Sheet>
-                </div>
-            </div>
 
             {/* Filters Bar - Fixed */}
             <div className="flex-none flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
@@ -299,6 +307,27 @@ const Tasks = () => {
                             </SelectItem>
                         </SelectContent>
                     </Select>
+
+                    <Sheet open={isSheetOpen} onOpenChange={handleOpenChange}>
+                        <SheetTrigger asChild>
+                            <Button onClick={handleCreate}>
+                                <Plus className="mr-2 h-4 w-4" /> Create Task
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent className="sm:max-w-[600px] overflow-y-auto">
+                            <SheetHeader>
+                                <SheetTitle>{editingTask ? 'Edit Task' : 'Create Task'}</SheetTitle>
+                                <SheetDescription>
+                                    {editingTask ? 'Make changes to your task here.' : 'Add a new task to your workspace.'}
+                                </SheetDescription>
+                            </SheetHeader>
+                            <TaskForm
+                                key={editingTask?.name || `new-${refreshKey}`}
+                                initialData={editingTask}
+                                onSuccess={handleSuccess}
+                            />
+                        </SheetContent>
+                    </Sheet>
                 </div>
             </div>
 
@@ -328,7 +357,7 @@ const Tasks = () => {
                 ) : (
                     <>
                         {viewMode === 'board' ? (
-                            <KanbanBoard tasks={filteredTasks} onTaskMove={handleTaskMove} />
+                            <KanbanBoard tasks={filteredTasks} onTaskMove={handleTaskMove} onTaskClick={handleEdit} onAdd={handleCreateWithStatus} />
                         ) : viewMode === 'card' ? (
                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                 {filteredTasks.map((task: any) => (
@@ -381,6 +410,7 @@ const Tasks = () => {
                                 <DataTable
                                     data={filteredTasks}
                                     columns={columns}
+                                    meta={{ onEdit: handleEdit }}
                                 />
                             </div>
                         )}

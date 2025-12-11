@@ -2,14 +2,16 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Card, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface KanbanCardProps {
     task: any;
+    onClick?: (task: any) => void;
 }
 
-export function KanbanCard({ task }: KanbanCardProps) {
+export function KanbanCard({ task, onClick }: KanbanCardProps) {
     const {
         setNodeRef,
         attributes,
@@ -48,9 +50,25 @@ export function KanbanCard({ task }: KanbanCardProps) {
             {...listeners}
             className="touch-none"
         >
-            <Card className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow">
+            <Card
+                className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow group relative"
+                onClick={() => onClick?.(task)}
+            >
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 shadow-sm border border-transparent hover:border-border transition-all"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onClick?.(task);
+                        }}
+                    >
+                        <Pencil className="h-3 w-3" />
+                    </Button>
+                </div>
                 <CardHeader className="p-3 pb-2 space-y-0">
-                    <div className="flex justify-between items-start">
+                    <div className="flex justify-between items-start pr-6">
                         <Badge variant="outline" className={`mb-2 text-[10px] uppercase font-bold tracking-wider ${task.priority === 'High' || task.priority === 'Urgent' ? 'border-orange-500 text-orange-600 bg-orange-50 dark:bg-orange-950/20' :
                             task.priority === 'Medium' ? 'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-950/20' :
                                 'border-green-500 text-green-600 bg-green-50 dark:bg-green-950/20'

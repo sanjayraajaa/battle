@@ -18,9 +18,11 @@ import { KanbanCard } from "./KanbanCard";
 interface KanbanBoardProps {
     tasks: any[];
     onTaskMove: (taskId: string, newStatus: string) => void;
+    onTaskClick?: (task: any) => void;
+    onAdd?: (status: string) => void;
 }
 
-export function KanbanBoard({ tasks, onTaskMove }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, onTaskMove, onTaskClick, onAdd }: KanbanBoardProps) {
     const columns = useMemo(() => [
         { id: "Open", title: "Open" },
         { id: "Working", title: "Working" },
@@ -122,6 +124,8 @@ export function KanbanBoard({ tasks, onTaskMove }: KanbanBoardProps) {
                                 <KanbanColumn
                                     column={col}
                                     tasks={tasksByStatus[col.id] || []}
+                                    onTaskClick={onTaskClick}
+                                    onAdd={onAdd}
                                 />
                             </div>
                         ))}

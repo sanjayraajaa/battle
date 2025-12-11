@@ -200,31 +200,7 @@ const Projects = () => {
 
     return (
         <div className="flex flex-col gap-6 p-8 h-full overflow-y-auto">
-            <div className="flex items-center justify-between">
 
-                <div className="flex items-center gap-2">
-                    <Sheet open={isSheetOpen} onOpenChange={handleOpenChange}>
-                        <SheetTrigger asChild>
-                            <Button onClick={handleCreate}>
-                                <Plus className="mr-2 h-4 w-4" /> Create Project
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent className="sm:max-w-[540px] overflow-y-auto">
-                            <SheetHeader>
-                                <SheetTitle>{editingProject ? 'Edit Project' : 'Create Project'}</SheetTitle>
-                                <SheetDescription>
-                                    {editingProject ? 'Make changes to your project here.' : 'Add a new project to your workspace.'}
-                                </SheetDescription>
-                            </SheetHeader>
-                            <ProjectForm
-                                key={editingProject?.name || `new-${refreshKey}`}
-                                initialData={editingProject}
-                                onSuccess={handleSuccess}
-                            />
-                        </SheetContent>
-                    </Sheet>
-                </div>
-            </div>
 
             {/* Filters Bar */}
             <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
@@ -291,6 +267,27 @@ const Projects = () => {
                             </SelectItem>
                         </SelectContent>
                     </Select>
+
+                    <Sheet open={isSheetOpen} onOpenChange={handleOpenChange}>
+                        <SheetTrigger asChild>
+                            <Button onClick={handleCreate}>
+                                <Plus className="mr-2 h-4 w-4" /> Create Project
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent className="sm:max-w-[540px] overflow-y-auto">
+                            <SheetHeader>
+                                <SheetTitle>{editingProject ? 'Edit Project' : 'Create Project'}</SheetTitle>
+                                <SheetDescription>
+                                    {editingProject ? 'Make changes to your project here.' : 'Add a new project to your workspace.'}
+                                </SheetDescription>
+                            </SheetHeader>
+                            <ProjectForm
+                                key={editingProject?.name || `new-${refreshKey}`}
+                                initialData={editingProject}
+                                onSuccess={handleSuccess}
+                            />
+                        </SheetContent>
+                    </Sheet>
                 </div>
             </div>
 
