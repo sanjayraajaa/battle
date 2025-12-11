@@ -1,6 +1,6 @@
 "use client"
 
-import { Row } from "@tanstack/react-table"
+import type { Row } from "@tanstack/react-table"
 import { Copy, MoreHorizontal, Pen, Trash } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -20,7 +20,6 @@ export function DataTableRowActions<TData>({
     row,
 }: DataTableRowActionsProps<TData>) {
     const project = row.original as any
-    // @ts-ignore
     const meta = row.getAllCells()[0].getContext().table.options.meta;
 
     return (
@@ -35,7 +34,7 @@ export function DataTableRowActions<TData>({
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[160px]">
-                <DropdownMenuItem onClick={() => meta?.onEdit(project)}>
+                <DropdownMenuItem onClick={() => meta?.onEdit?.(project)}>
                     <Pen className="mr-2 h-3.5 w-3.5 text-muted-foreground/70" />
                     Edit
                 </DropdownMenuItem>
