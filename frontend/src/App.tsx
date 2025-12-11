@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import { SidebarLayout } from './components/Sidebar';
+import { Toaster } from "@/components/ui/sonner"
 import './App.css';
 
 const PrivateRoute = () => {
@@ -52,8 +53,10 @@ const PublicRoute = () => {
 };
 
 function App() {
+  const basename = import.meta.env.DEV ? '/assets/battle/frontend' : '/battle';
+
   return (
-    <BrowserRouter basename="/battle">
+    <BrowserRouter basename={basename}>
       <Routes>
         {/* Public Routes */}
         <Route element={<PublicRoute />}>
@@ -67,6 +70,7 @@ function App() {
           {/* Add more private routes here */}
         </Route>
       </Routes>
+      <Toaster />
     </BrowserRouter>
   );
 }

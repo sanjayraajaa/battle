@@ -13,22 +13,54 @@ import { ProjectForm } from '@/components/project-form';
 
 const Projects = () => {
     const { data: projects, isLoading, error, mutate } = useFrappeGetDocList('Project', {
-        fields: ['name', 'project_name', 'status', 'priority', 'percent_complete', 'expected_end_date', 'project_type'],
+        fields: [
+            'name',
+            'project_name',
+            'project_type',
+            'status',
+            'priority',
+            'expected_start_date',
+            'expected_end_date',
+            'is_active',
+            'department',
+            'notes',
+            'percent_complete',
+            'modified'
+        ],
         orderBy: { field: 'modified', order: 'desc' }
     });
 
     const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [editingProject, setEditingProject] = useState<any>(null);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const handleEdit = (project: any) => {
-        setEditingProject(project);
+        setEditingProject({ ...project });
+        // Don't increment refreshKey here - use project.name as key instead
         setIsSheetOpen(true);
     };
 
     const handleSheetClose = () => {
         setIsSheetOpen(false);
+        // Don't null editingProject here - let onOpenChange handle it
+        // This prevents the form from receiving null while still mounted
+    };
+
+    const handleOpenChange = (open: boolean) => {
+        setIsSheetOpen(open);
+        if (!open) {
+            // Only clear editingProject when sheet is fully closed
+            // Use setTimeout to ensure it happens after closing animation
+            setTimeout(() => {
+                setEditingProject(null);
+            }, 150);
+        }
+    };
+
+    const handleCreate = () => {
         setEditingProject(null);
+        setRefreshKey(prev => prev + 1);
     };
 
     const handleSuccess = () => {
@@ -68,13 +100,13 @@ const Projects = () => {
                     <p className="text-muted-foreground">Manage and track your ongoing projects.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                    <Sheet open={isSheetOpen} onOpenChange={handleOpenChange}>
                         <SheetTrigger asChild>
-                            <Button onClick={() => setEditingProject(null)}>
+                            <Button onClick={handleCreate}>
                                 <Plus className="mr-2 h-4 w-4" /> Create Project
                             </Button>
                         </SheetTrigger>
-                        <SheetContent className="sm:max-w-[540px]">
+                        <SheetContent className="sm:max-w-[540px] overflow-y-auto">
                             <SheetHeader>
                                 <SheetTitle>{editingProject ? 'Edit Project' : 'Create Project'}</SheetTitle>
                                 <SheetDescription>
@@ -82,6 +114,7 @@ const Projects = () => {
                                 </SheetDescription>
                             </SheetHeader>
                             <ProjectForm
+                                key={editingProject?.name || `new-${refreshKey}`}
                                 initialData={editingProject}
                                 onSuccess={handleSuccess}
                             />
@@ -159,8 +192,8 @@ const Projects = () => {
                                                 <div className="flex flex-col">
                                                     <span className="text-xs text-muted-foreground">Priority</span>
                                                     <span className={`font-medium capitalize ${project.priority === 'High' ? 'text-orange-500' :
-                                                            project.priority === 'Medium' ? 'text-blue-500' :
-                                                                'text-green-500'
+                                                        project.priority === 'Medium' ? 'text-blue-500' :
+                                                            'text-green-500'
                                                         }`}>{project.priority || 'Medium'}</span>
                                                 </div>
                                             </div>
