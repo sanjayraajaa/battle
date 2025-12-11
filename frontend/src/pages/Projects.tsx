@@ -201,10 +201,7 @@ const Projects = () => {
     return (
         <div className="flex flex-col gap-6 p-8 h-full overflow-y-auto">
             <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
-                    <p className="text-muted-foreground">Manage and track your ongoing projects.</p>
-                </div>
+
                 <div className="flex items-center gap-2">
                     <Sheet open={isSheetOpen} onOpenChange={handleOpenChange}>
                         <SheetTrigger asChild>

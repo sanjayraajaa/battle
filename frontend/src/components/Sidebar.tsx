@@ -3,8 +3,17 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { AppSidebar } from "./app-sidebar"
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from "@/components/ui/breadcrumb"
+import { useLocation } from "react-router-dom"
 
 export const SidebarLayout = ({ children }: { children: React.ReactNode }) => {
+    const location = useLocation();
+    const getPageTitle = () => {
+        const path = location.pathname;
+        if (path.includes('tasks')) return 'Tasks';
+        if (path.includes('projects')) return 'Projects';
+        return 'Dashboard';
+    }
+
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -16,7 +25,7 @@ export const SidebarLayout = ({ children }: { children: React.ReactNode }) => {
                         <Breadcrumb>
                             <BreadcrumbList>
                                 <BreadcrumbItem>
-                                    <BreadcrumbPage>Dashboard</BreadcrumbPage>
+                                    <BreadcrumbPage>{getPageTitle()}</BreadcrumbPage>
                                 </BreadcrumbItem>
                             </BreadcrumbList>
                         </Breadcrumb>

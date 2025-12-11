@@ -1,0 +1,392 @@
+
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { useFrappeCreateDoc, useFrappeUpdateDoc, useFrappeGetDocList, useFrappeGetDoc } from "frappe-react-sdk"
+import { useEffect } from "react"
+import { Loader2 } from "lucide-react"
+import { toast } from "sonner"
+
+import { Button } from "@/components/ui/button"
+import {
+    Form,
+    FormControl,
+
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { SheetClose, SheetFooter } from "@/components/ui/sheet"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Textarea } from "@/components/ui/textarea"
+import Calendar from "./calendar-standard-2"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { format, parse } from "date-fns"
+import { CalendarIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { ColorPicker } from "./ui/color-picker"
+
+// Schema definition
+const taskSchema = z.object({
+    subject: z.string().min(2, "Subject must be at least 2 characters"),
+    status: z.string().min(1, "Please select a status"),
+    project: z.string().optional(),
+    priority: z.string().optional(),
+    type: z.string().optional(),
+    color: z.string().optional(),
+    is_group: z.boolean().default(false),
+    exp_start_date: z.string().optional(),
+    exp_end_date: z.string().optional(),
+    expected_time: z.number().optional().or(z.string().transform((val) => (val === "" ? undefined : Number(val)))),
+    is_milestone: z.boolean().default(false),
+    description: z.string().optional(),
+})
+
+type TaskFormValues = z.infer<typeof taskSchema>
+
+interface TaskFormProps {
+    initialData?: any
+    onSuccess: () => void
+}
+
+export function TaskForm({ initialData, onSuccess }: TaskFormProps) {
+    const { createDoc, loading: creating } = useFrappeCreateDoc()
+    const { updateDoc, loading: updating } = useFrappeUpdateDoc()
+
+    // Fetch dependent data
+    const { data: projects } = useFrappeGetDocList('Project', {
+        fields: ['name', 'project_name']
+    })
+
+    const isLoading = creating || updating
+
+    const { data: docType } = useFrappeGetDoc("DocType", "Task")
+
+
+
+    const formDefaultValues: TaskFormValues = {
+        subject: initialData?.subject || "",
+        status: initialData?.status || "Open",
+        project: initialData?.project || "",
+        priority: initialData?.priority || "Medium",
+        type: initialData?.type || "", // Assuming fieldname is 'type' or 'task_type'? User said 'type', using 'type' for now but checking DocType logic below if needed
+        color: initialData?.color || "",
+        is_group: initialData ? (initialData.is_group === 1 || initialData.is_group === true) : false,
+        exp_start_date: initialData?.exp_start_date || "",
+        exp_end_date: initialData?.exp_end_date || "",
+        expected_time: initialData?.expected_time || undefined,
+        is_milestone: initialData ? (initialData.is_milestone === 1 || initialData.is_milestone === true) : false,
+        description: initialData?.description || "",
+    };
+
+    const form = useForm<TaskFormValues>({
+        resolver: zodResolver(taskSchema),
+        defaultValues: formDefaultValues,
+    })
+
+    // Reset form when initialData changes or DocType loads default
+    useEffect(() => {
+        if (!initialData && docType) {
+            // Set defaults from DocType if needed, currently manual defaults are adequate
+        }
+    }, [initialData, docType]);
+
+
+    const onSubmit = async (data: TaskFormValues) => {
+        const formData = {
+            ...data,
+            is_group: data.is_group ? 1 : 0,
+            is_milestone: data.is_milestone ? 1 : 0,
+        }
+        try {
+            if (initialData) {
+                await updateDoc('Task', initialData.name, formData)
+            } else {
+                await createDoc('Task', formData)
+            }
+            onSuccess()
+            toast.success(`Task ${initialData ? 'updated' : 'created'} successfully`)
+        } catch (error: any) {
+            console.error("Failed to save task", error)
+            toast.error("Failed to save task. Please try again.")
+        }
+    }
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
+                <FormField<TaskFormValues, "subject">
+                    control={form.control}
+                    name="subject"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Subject</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Task subject..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField<TaskFormValues, "status">
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Status</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Status" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {/* Fallback options if DocType not loaded or field missing options */}
+                                        {["Open", "Working", "Pending Review", "Completed", "Cancelled"].map(opt => (
+                                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField<TaskFormValues, "priority">
+                        control={form.control}
+                        name="priority"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Priority</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Priority" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {["Low", "Medium", "High", "Urgent"].map(opt => (
+                                            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <FormField<TaskFormValues, "project">
+                    control={form.control}
+                    name="project"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Project</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="Select Project" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {projects?.map((proj: any) => (
+                                        <SelectItem key={proj.name} value={proj.name}>
+                                            {proj.project_name || proj.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField<TaskFormValues, "type">
+                        control={form.control}
+                        name="type"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Type</FormLabel>
+                                <Input placeholder="Task Type" {...field} />
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField<TaskFormValues, "color">
+                        control={form.control}
+                        name="color"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Color</FormLabel>
+                                <FormControl>
+                                    <ColorPicker
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        className="w-full"
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField<TaskFormValues, "exp_start_date">
+                        control={form.control}
+                        name="exp_start_date"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                                <FormLabel>Exp. Start Date</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full pl-3 text-left font-normal",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                            >
+                                                {field.value ? (
+                                                    format(new Date(field.value), "PPP")
+                                                ) : (
+                                                    <span>Pick a date</span>
+                                                )}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value ? parse(field.value, "yyyy-MM-dd", new Date()) : undefined}
+                                            onSelect={(date: Date | undefined) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField<TaskFormValues, "exp_end_date">
+                        control={form.control}
+                        name="exp_end_date"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-col">
+                                <FormLabel>Exp. End Date</FormLabel>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full pl-3 text-left font-normal",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                            >
+                                                {field.value ? (
+                                                    format(new Date(field.value), "PPP")
+                                                ) : (
+                                                    <span>Pick a date</span>
+                                                )}
+                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value ? parse(field.value, "yyyy-MM-dd", new Date()) : undefined}
+                                            onSelect={(date: Date | undefined) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <FormField<TaskFormValues, "expected_time">
+                    control={form.control}
+                    name="expected_time"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Expected Time (Hours)</FormLabel>
+                            <FormControl>
+                                <Input type="number" step="0.5" placeholder="0.0" {...field} value={field.value ?? ""} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <div className="flex gap-6">
+                    <FormField<TaskFormValues, "is_group">
+                        control={form.control}
+                        name="is_group"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                <FormControl>
+                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                </FormControl>
+                                <FormLabel className="font-normal">Is Group</FormLabel>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField<TaskFormValues, "is_milestone">
+                        control={form.control}
+                        name="is_milestone"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                <FormControl>
+                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                </FormControl>
+                                <FormLabel className="font-normal">Is Milestone</FormLabel>
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <FormField<TaskFormValues, "description">
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="Task details..." className="min-h-[100px] resize-none" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <SheetFooter className="pt-4">
+                    <SheetClose asChild>
+                        <Button variant="outline" type="button">Cancel</Button>
+                    </SheetClose>
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {initialData ? "Save Changes" : "Create Task"}
+                    </Button>
+                </SheetFooter>
+            </form>
+        </Form>
+    )
+}
