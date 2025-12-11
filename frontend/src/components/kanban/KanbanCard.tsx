@@ -54,44 +54,44 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
                 className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow group relative"
                 onClick={() => onClick?.(task)}
             >
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 z-20">
                     <Button
-                        variant="ghost"
+                        variant="secondary"
                         size="icon"
-                        className="h-5 w-5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 shadow-sm border border-transparent hover:border-border transition-all"
+                        className="h-6 w-6 p-0 rounded-full bg-background/80 hover:bg-background shadow-sm border border-transparent hover:border-border backdrop-blur-sm"
                         onClick={(e) => {
                             e.stopPropagation();
                             onClick?.(task);
                         }}
                     >
-                        <Pencil className="h-3 w-3" />
+                        <Pencil className="h-3 w-3 text-muted-foreground" strokeWidth={2} />
                     </Button>
                 </div>
-                <CardHeader className="p-3 pb-2 space-y-0">
-                    <div className="flex justify-between items-start pr-6">
-                        <Badge variant="outline" className={`mb-2 text-[10px] uppercase font-bold tracking-wider ${task.priority === 'High' || task.priority === 'Urgent' ? 'border-orange-500 text-orange-600 bg-orange-50 dark:bg-orange-950/20' :
-                            task.priority === 'Medium' ? 'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-950/20' :
-                                'border-green-500 text-green-600 bg-green-50 dark:bg-green-950/20'
-                            }`}>
-                            {task.priority || 'Medium'}
-                        </Badge>
-                        {task.project && (
-                            <span className="text-[10px] text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">
-                                {task.project}
-                            </span>
-                        )}
-                    </div>
-                    <CardTitle className="text-sm font-semibold leading-tight line-clamp-2">
+                <CardHeader className="p-3 pb-2 space-y-1 relative">
+                    <Badge variant="outline" className={`w-fit text-[10px] uppercase font-bold tracking-wider ${task.priority === 'High' || task.priority === 'Urgent' ? 'border-orange-500 text-orange-600 bg-orange-50 dark:bg-orange-950/20' :
+                        task.priority === 'Medium' ? 'border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-950/20' :
+                            'border-green-500 text-green-600 bg-green-50 dark:bg-green-950/20'
+                        }`}>
+                        {task.priority || 'Medium'}
+                    </Badge>
+                    <CardTitle className="text-sm font-semibold leading-tight line-clamp-2 pt-1">
                         {task.subject}
                     </CardTitle>
-                    <CardDescription className="text-xs font-mono mt-1">
+                    <CardDescription className="text-xs font-mono">
                         {task.name}
                     </CardDescription>
                 </CardHeader>
-                <CardFooter className="p-3 pt-2 flex items-center justify-between text-xs text-muted-foreground border-t bg-muted/10 h-8 mt-2">
-                    <div className="flex items-center">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {task.exp_end_date ? new Date(task.exp_end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '-'}
+                <CardFooter className="p-3 pt-2 flex items-center justify-between text-xs text-muted-foreground border-t bg-muted/10 min-h-[32px] mt-2">
+                    <div className="flex items-center gap-2">
+                        {task.project && (
+                            <span className="text-[10px] font-medium px-1.5 py-0.5 bg-background border rounded shadow-sm max-w-[80px] truncate" title={task.project}>
+                                {task.project}
+                            </span>
+                        )}
+                        <div className="flex items-center">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            {task.exp_end_date ? new Date(task.exp_end_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '-'}
+                        </div>
                     </div>
                     <Avatar className="h-5 w-5 border border-background">
                         <AvatarFallback className="text-[8px]">U</AvatarFallback>
