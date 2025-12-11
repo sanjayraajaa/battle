@@ -11,6 +11,7 @@ import {
   Command,
   AudioWaveform,
   FolderKanban,
+  CheckSquare,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -46,6 +47,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         title: "Projects",
         url: "/projects",
         icon: FolderKanban,
+      },
+      {
+        title: "Tasks",
+        url: "/tasks",
+        icon: CheckSquare,
       },
     ],
   }
