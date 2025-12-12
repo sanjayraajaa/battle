@@ -28,12 +28,10 @@ import {
 import { SheetClose, SheetFooter } from "@/components/ui/sheet"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
-import Calendar from "./calendar-standard-2"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { format, parse } from "date-fns"
-import { CalendarIcon } from "lucide-react"
+import { format } from "date-fns"
 import { cn } from "@/lib/utils"
 import { ColorPicker } from "./ui/color-picker"
+import { DateTimePicker } from "./ui/date-time-picker"
 
 // Schema definition
 const taskSchema = z.object({
@@ -250,34 +248,12 @@ export function TaskForm({ initialData, onSuccess }: TaskFormProps) {
                         render={({ field }) => (
                             <FormItem className="flex flex-col">
                                 <FormLabel>Exp. Start Date</FormLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                    "w-full pl-3 text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                            >
-                                                {field.value ? (
-                                                    format(new Date(field.value), "PPP")
-                                                ) : (
-                                                    <span>Pick a date</span>
-                                                )}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value ? parse(field.value, "yyyy-MM-dd", new Date()) : undefined}
-                                            onSelect={(date: Date | undefined) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
+                                <FormControl>
+                                    <DateTimePicker
+                                        date={field.value ? new Date(field.value) : undefined}
+                                        setDate={(date) => field.onChange(date ? format(date, "yyyy-MM-dd HH:mm:ss") : "")}
+                                    />
+                                </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -288,34 +264,12 @@ export function TaskForm({ initialData, onSuccess }: TaskFormProps) {
                         render={({ field }) => (
                             <FormItem className="flex flex-col">
                                 <FormLabel>Exp. End Date</FormLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <FormControl>
-                                            <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                    "w-full pl-3 text-left font-normal",
-                                                    !field.value && "text-muted-foreground"
-                                                )}
-                                            >
-                                                {field.value ? (
-                                                    format(new Date(field.value), "PPP")
-                                                ) : (
-                                                    <span>Pick a date</span>
-                                                )}
-                                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value ? parse(field.value, "yyyy-MM-dd", new Date()) : undefined}
-                                            onSelect={(date: Date | undefined) => field.onChange(date ? format(date, "yyyy-MM-dd") : "")}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
+                                <FormControl>
+                                    <DateTimePicker
+                                        date={field.value ? new Date(field.value) : undefined}
+                                        setDate={(date) => field.onChange(date ? format(date, "yyyy-MM-dd HH:mm:ss") : "")}
+                                    />
+                                </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
