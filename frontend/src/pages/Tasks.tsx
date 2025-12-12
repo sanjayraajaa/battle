@@ -2,13 +2,13 @@ import { useFrappeGetDocList, useFrappeGetDoc, useFrappeUpdateDoc } from 'frappe
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Plus, Search, Filter, X, Kanban, LayoutGrid, List, Calendar, CheckSquare, MoreHorizontal } from 'lucide-react';
+import { Plus, Search, Filter, X, Kanban, LayoutGrid, List, Calendar, CheckSquare } from 'lucide-react';
 import { TaskForm } from '@/components/task-form';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { FrappeFilter, type Filter as FilterType } from "@/components/frappe-filter";
+import { FrappeFilter } from "@/components/frappe-filter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -19,14 +19,23 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { DataTableRowActions } from "@/components/data-table/data-table-row-actions";
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-
 const Tasks = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const currentView = searchParams.get('view') as 'card' | 'list' | 'board' || 'board';
     const [viewMode, setViewMode] = useState<'card' | 'list' | 'board'>(currentView);
+
+    // Derived state from URL
+    const groupBy = (searchParams.get('groupBy') as 'status' | 'priority') || 'status';
+    const filters: any[] = useMemo(() => {
+        try {
+            const f = searchParams.get("filters");
+            return f ? JSON.parse(f) : [];
+        } catch (e) {
+            return [];
+        }
+    }, [searchParams]);
+
     const [searchQuery, setSearchQuery] = useState('');
-    const [filters, setFilters] = useState<any[]>([]);
     const [tempFilters, setTempFilters] = useState<any[]>([]);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -43,9 +52,16 @@ const Tasks = () => {
         });
     };
 
+    const handleGroupByChange = (v: 'status' | 'priority') => {
+        setSearchParams(prev => {
+            prev.set('groupBy', v);
+            return prev;
+        });
+    }
+
     const { data: tasks, isLoading, error, mutate } = useFrappeGetDocList('Task', {
-        fields: ['name', 'subject', 'status', 'priority', 'project', 'exp_end_date', 'description', 'type', 'color'],
-        filters: filters.map(f => [f.field, f.operator, f.value]),
+        fields: ['name', 'subject', 'status', 'priority', 'project', 'exp_end_date', 'description', 'type', 'color', 'is_group', 'is_milestone', 'expected_time', 'exp_start_date'],
+        filters: filters, // Pass directly as tuple array
         orderBy: { field: 'modified', order: 'desc' },
         limit: 100
     }, `tasks-${refreshKey}-${JSON.stringify(filters)}`);
@@ -53,15 +69,24 @@ const Tasks = () => {
     const { data: taskMeta } = useFrappeGetDoc('DocType', 'Task');
     const { updateDoc } = useFrappeUpdateDoc();
 
+    const ALLOWED_FILTER_FIELDS = [
+        'name', 'subject', 'status', 'priority', 'project', 'type',
+        'exp_start_date', 'exp_end_date', 'is_group', 'is_milestone', 'expected_time'
+    ];
+
     const availableFields = taskMeta?.fields?.filter((f: any) =>
-        !['Section Break', 'Column Break', 'Tab Break', 'Table', 'HTML', 'Button'].includes(f.fieldtype) &&
-        !f.hidden
+        ALLOWED_FILTER_FIELDS.includes(f.fieldname)
     ).map((f: any) => ({
         label: f.label,
         value: f.fieldname,
         type: f.fieldtype,
         options: f.options
     })) || [];
+
+    // Manually add 'name' if not in fields (usually standard fields aren't in 'fields' array of meta)
+    if (availableFields.length > 0 && !availableFields.find((f: any) => f.value === 'name')) {
+        availableFields.push({ label: 'ID', value: 'name', type: 'Data' });
+    }
 
     const handleCreate = () => {
         setEditingTask(null);
@@ -100,22 +125,32 @@ const Tasks = () => {
     };
 
     const handleApplyFilters = () => {
-        setFilters(tempFilters);
+        setSearchParams(prev => {
+            if (tempFilters.length > 0) {
+                prev.set('filters', JSON.stringify(tempFilters));
+            } else {
+                prev.delete('filters');
+            }
+            return prev;
+        });
         setIsFilterOpen(false);
     };
 
     const handleClearFilters = () => {
-        setFilters([]);
+        setSearchParams(prev => {
+            prev.delete('filters');
+            return prev;
+        });
         setSearchQuery('');
         setTempFilters([]);
     };
 
-    const handleTaskMove = async (taskId: string, newStatus: string) => {
+    const handleTaskMove = async (taskId: string, newValue: string, field: string) => {
         try {
-            await updateDoc('Task', taskId, { status: newStatus });
+            await updateDoc('Task', taskId, { [field]: newValue });
             mutate();
         } catch (error) {
-            console.error("Failed to update task status", error);
+            console.error("Failed to update task", error);
         }
     };
 
@@ -227,6 +262,23 @@ const Tasks = () => {
         },
     ];
 
+    const columnOptions = useMemo(() => {
+        if (!taskMeta?.fields) return {};
+        const opts: Record<string, string[]> = {};
+
+        const statusField = taskMeta.fields.find((f: any) => f.fieldname === 'status');
+        if (statusField?.options) {
+            opts.status = statusField.options.split('\n').filter((o: string) => o);
+        }
+
+        const priorityField = taskMeta.fields.find((f: any) => f.fieldname === 'priority');
+        if (priorityField?.options) {
+            opts.priority = priorityField.options.split('\n').filter((o: string) => o);
+        }
+
+        return opts;
+    }, [taskMeta]);
+
     const handleCreateWithStatus = (status: string) => {
         setEditingTask({ status } as any);
         setIsSheetOpen(true);
@@ -237,32 +289,32 @@ const Tasks = () => {
 
 
             {/* Filters Bar - Fixed */}
-            <div className="flex-none flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
-                <div className="flex flex-1 flex-col md:flex-row gap-4 w-full md:w-auto items-stretch md:items-center">
-                    <div className="relative w-full md:w-64">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <div className="flex-none flex flex-col lg:flex-row gap-2 items-stretch lg:items-center justify-between bg-card px-4 py-2 rounded-lg border shadow-sm">
+                <div className="flex flex-1 flex-col sm:flex-row gap-2 w-full lg:w-auto items-stretch sm:items-center">
+                    <div className="relative w-full sm:w-64">
+                        <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Search tasks..."
-                            className="pl-9 w-full"
+                            className="pl-9 w-full h-8"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
 
-                    <div className="flex gap-2 w-full md:w-auto">
+                    <div className="flex gap-2 w-full sm:w-auto">
                         <Popover open={isFilterOpen} onOpenChange={handleFilterOpenChange}>
                             <PopoverTrigger asChild>
-                                <Button variant="outline" className="border-dashed flex-1 md:flex-none justify-start md:justify-center">
-                                    <Filter className="mr-2 h-4 w-4" />
-                                    Filters
+                                <Button variant="outline" size="sm" className="border-dashed h-8 flex-1 sm:flex-none justify-start sm:justify-center">
+                                    <Filter className="mr-2 h-3.5 w-3.5" />
+                                    Filter
                                     {filters.length > 0 && (
-                                        <Badge variant="secondary" className="ml-2 rounded-sm px-1 font-normal">
+                                        <Badge variant="secondary" className="ml-2 rounded-sm px-1 font-normal text-[10px] h-5">
                                             {filters.length}
                                         </Badge>
                                     )}
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-[calc(100vw-2rem)] md:w-[600px]" align="start">
+                            <PopoverContent className="w-[calc(100vw-2rem)] md:w-[480px]" align="start">
                                 <FrappeFilter
                                     fields={availableFields}
                                     filters={tempFilters}
@@ -274,44 +326,58 @@ const Tasks = () => {
                         </Popover>
 
                         {(filters.length > 0 || searchQuery) && (
-                            <Button variant="ghost" size="icon" onClick={handleClearFilters} title="Clear Filters" className="shrink-0">
+                            <Button variant="ghost" size="icon" onClick={handleClearFilters} title="Clear Filters" className="shrink-0 h-8 w-8">
                                 <X className="h-4 w-4" />
                             </Button>
                         )}
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 w-full md:w-auto">
+                <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-1 sm:pb-0">
                     <Select value={viewMode} onValueChange={(v: 'card' | 'list' | 'board') => handleViewChange(v)}>
-                        <SelectTrigger className="w-full md:w-[140px]">
+                        <SelectTrigger className="w-[130px] h-8 text-xs">
                             <SelectValue placeholder="View" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="board">
                                 <div className="flex items-center">
-                                    <Kanban className="mr-2 h-4 w-4" />
-                                    <span>Board View</span>
+                                    <Kanban className="mr-2 h-3.5 w-3.5" />
+                                    <span>Board</span>
                                 </div>
                             </SelectItem>
                             <SelectItem value="card">
                                 <div className="flex items-center">
-                                    <LayoutGrid className="mr-2 h-4 w-4" />
-                                    <span>Card View</span>
+                                    <LayoutGrid className="mr-2 h-3.5 w-3.5" />
+                                    <span>Card</span>
                                 </div>
                             </SelectItem>
                             <SelectItem value="list">
                                 <div className="flex items-center">
-                                    <List className="mr-2 h-4 w-4" />
-                                    <span>List View</span>
+                                    <List className="mr-2 h-3.5 w-3.5" />
+                                    <span>List</span>
                                 </div>
                             </SelectItem>
                         </SelectContent>
                     </Select>
 
+                    {viewMode === 'board' && (
+                        <Select value={groupBy} onValueChange={(v: 'status' | 'priority') => handleGroupByChange(v)}>
+                            <SelectTrigger className="w-[110px] h-8 text-xs">
+                                <SelectValue placeholder="Group By" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="status">Status</SelectItem>
+                                <SelectItem value="priority">Priority</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    )}
+
+                    <div className="h-4 w-px bg-border mx-1"></div>
+
                     <Sheet open={isSheetOpen} onOpenChange={handleOpenChange}>
                         <SheetTrigger asChild>
-                            <Button onClick={handleCreate}>
-                                <Plus className="mr-2 h-4 w-4" /> Create Task
+                            <Button onClick={handleCreate} size="sm" className="h-8 text-xs">
+                                <Plus className="mr-1.5 h-3.5 w-3.5" /> Create
                             </Button>
                         </SheetTrigger>
                         <SheetContent className="sm:max-w-[600px] overflow-y-auto">
@@ -350,14 +416,21 @@ const Tasks = () => {
                         </p>
                         {(filters.length > 0 || searchQuery) && (
                             <Button variant="link" onClick={handleClearFilters} className="mt-2">
-                                Clear all filters
+                                <span className="mr-2">Clear all filters</span>
                             </Button>
                         )}
                     </div>
                 ) : (
                     <>
                         {viewMode === 'board' ? (
-                            <KanbanBoard tasks={filteredTasks} onTaskMove={handleTaskMove} onTaskClick={handleEdit} onAdd={handleCreateWithStatus} />
+                            <KanbanBoard
+                                groupBy={groupBy}
+                                tasks={filteredTasks}
+                                onTaskMove={handleTaskMove}
+                                onTaskClick={handleEdit}
+                                onAdd={handleCreateWithStatus}
+                                columnOptions={columnOptions}
+                            />
                         ) : viewMode === 'card' ? (
                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                 {filteredTasks.map((task: any) => (

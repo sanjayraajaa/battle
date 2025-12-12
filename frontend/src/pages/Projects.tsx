@@ -203,32 +203,32 @@ const Projects = () => {
 
 
             {/* Filters Bar */}
-            <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
-                <div className="flex flex-1 flex-col md:flex-row gap-4 w-full md:w-auto items-stretch md:items-center">
-                    <div className="relative w-full md:w-64">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-col lg:flex-row gap-2 items-stretch lg:items-center justify-between bg-card px-4 py-2 rounded-lg border shadow-sm">
+                <div className="flex flex-1 flex-col sm:flex-row gap-2 w-full lg:w-auto items-stretch sm:items-center">
+                    <div className="relative w-full sm:w-64">
+                        <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Search projects..."
-                            className="pl-9 w-full"
+                            className="pl-9 w-full h-8"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
 
-                    <div className="flex gap-2 w-full md:w-auto">
+                    <div className="flex gap-2 w-full sm:w-auto">
                         <Popover open={isFilterOpen} onOpenChange={handleFilterOpenChange}>
                             <PopoverTrigger asChild>
-                                <Button variant="outline" className="border-dashed flex-1 md:flex-none justify-start md:justify-center">
-                                    <Filter className="mr-2 h-4 w-4" />
-                                    Filters
+                                <Button variant="outline" size="sm" className="border-dashed h-8 flex-1 sm:flex-none justify-start sm:justify-center">
+                                    <Filter className="mr-2 h-3.5 w-3.5" />
+                                    Filter
                                     {filters.length > 0 && (
-                                        <Badge variant="secondary" className="ml-2 rounded-sm px-1 font-normal">
+                                        <Badge variant="secondary" className="ml-2 rounded-sm px-1 font-normal text-[10px] h-5">
                                             {filters.length}
                                         </Badge>
                                     )}
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-[calc(100vw-2rem)] md:w-[600px]" align="start">
+                            <PopoverContent className="w-[calc(100vw-2rem)] md:w-[480px]" align="start">
                                 <FrappeFilter
                                     fields={availableFields}
                                     filters={tempFilters}
@@ -240,29 +240,29 @@ const Projects = () => {
                         </Popover>
 
                         {(filters.length > 0 || searchQuery) && (
-                            <Button variant="ghost" size="icon" onClick={handleClearFilters} title="Clear Filters" className="shrink-0">
+                            <Button variant="ghost" size="icon" onClick={handleClearFilters} title="Clear Filters" className="shrink-0 h-8 w-8">
                                 <X className="h-4 w-4" />
                             </Button>
                         )}
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 w-full md:w-auto">
+                <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-1 sm:pb-0">
                     <Select value={viewMode} onValueChange={(v: 'card' | 'list') => setViewMode(v)}>
-                        <SelectTrigger className="w-full md:w-[140px]">
+                        <SelectTrigger className="w-[130px] h-8 text-xs">
                             <SelectValue placeholder="View" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="card">
                                 <div className="flex items-center">
-                                    <LayoutGrid className="mr-2 h-4 w-4" />
-                                    <span>Card View</span>
+                                    <LayoutGrid className="mr-2 h-3.5 w-3.5" />
+                                    <span>Card</span>
                                 </div>
                             </SelectItem>
                             <SelectItem value="list">
                                 <div className="flex items-center">
-                                    <List className="mr-2 h-4 w-4" />
-                                    <span>List View</span>
+                                    <List className="mr-2 h-3.5 w-3.5" />
+                                    <span>List</span>
                                 </div>
                             </SelectItem>
                         </SelectContent>
@@ -270,8 +270,8 @@ const Projects = () => {
 
                     <Sheet open={isSheetOpen} onOpenChange={handleOpenChange}>
                         <SheetTrigger asChild>
-                            <Button onClick={handleCreate}>
-                                <Plus className="mr-2 h-4 w-4" /> Create Project
+                            <Button onClick={handleCreate} size="sm" className="h-8 text-xs">
+                                <Plus className="mr-1.5 h-3.5 w-3.5" /> Create
                             </Button>
                         </SheetTrigger>
                         <SheetContent className="sm:max-w-[540px] overflow-y-auto">

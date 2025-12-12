@@ -1,10 +1,9 @@
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Calendar as CalendarIcon, X } from "lucide-react";
+import { Plus, Trash2, Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
     Select,
     SelectContent,
@@ -86,7 +85,7 @@ export function FrappeFilter({ fields, filters, onFiltersChange, onApply, onClea
                 <Input
                     value={value}
                     onChange={(e) => updateFilterRow(index, 2, e.target.value)}
-                    className="h-8 w-full"
+                    className="h-7 w-full text-xs box-border"
                     placeholder="Value..."
                 />
             );
@@ -99,12 +98,12 @@ export function FrappeFilter({ fields, filters, onFiltersChange, onApply, onClea
                     value={value}
                     onValueChange={(val) => updateFilterRow(index, 2, val)}
                 >
-                    <SelectTrigger className="h-8 w-full">
+                    <SelectTrigger className="h-7 w-full text-xs">
                         <SelectValue placeholder="Select..." />
                     </SelectTrigger>
                     <SelectContent>
                         {opts.map((opt) => (
-                            <SelectItem key={opt} value={opt}>
+                            <SelectItem key={opt} value={opt} className="text-xs">
                                 {opt}
                             </SelectItem>
                         ))}
@@ -117,17 +116,17 @@ export function FrappeFilter({ fields, filters, onFiltersChange, onApply, onClea
             if (operator === "Between") {
                 const [start, end] = Array.isArray(value) ? value : ["", ""];
                 return (
-                    <div className="flex gap-2 w-full">
+                    <div className="flex gap-1.5 w-full">
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button
                                     variant={"outline"}
                                     className={cn(
-                                        "h-8 flex-1 justify-start text-left font-normal px-2",
+                                        "h-7 flex-1 justify-start text-left font-normal px-2 text-xs",
                                         !start && "text-muted-foreground"
                                     )}
                                 >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    <CalendarIcon className="mr-2 h-3 w-3" />
                                     {start ? format(new Date(start), "MM/dd/yy") : <span>Start</span>}
                                 </Button>
                             </PopoverTrigger>
@@ -148,11 +147,11 @@ export function FrappeFilter({ fields, filters, onFiltersChange, onApply, onClea
                                 <Button
                                     variant={"outline"}
                                     className={cn(
-                                        "h-8 flex-1 justify-start text-left font-normal px-2",
+                                        "h-7 flex-1 justify-start text-left font-normal px-2 text-xs",
                                         !end && "text-muted-foreground"
                                     )}
                                 >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    <CalendarIcon className="mr-2 h-3 w-3" />
                                     {end ? format(new Date(end), "MM/dd/yy") : <span>End</span>}
                                 </Button>
                             </PopoverTrigger>
@@ -178,11 +177,11 @@ export function FrappeFilter({ fields, filters, onFiltersChange, onApply, onClea
                         <Button
                             variant={"outline"}
                             className={cn(
-                                "h-8 w-full justify-start text-left font-normal",
+                                "h-7 w-full justify-start text-left font-normal text-xs",
                                 !value && "text-muted-foreground"
                             )}
                         >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            <CalendarIcon className="mr-2 h-3 w-3" />
                             {value ? format(new Date(value), "PPP") : <span>Pick a date</span>}
                         </Button>
                     </PopoverTrigger>
@@ -202,38 +201,38 @@ export function FrappeFilter({ fields, filters, onFiltersChange, onApply, onClea
             <Input
                 value={value}
                 onChange={(e) => updateFilterRow(index, 2, e.target.value)}
-                className="h-8 w-full"
+                className="h-7 w-full text-xs"
                 placeholder="Value..."
             />
         );
     };
 
     return (
-        <div className="grid gap-4">
-            <div className="space-y-2">
-                <h4 className="font-medium leading-none">Advanced Filters</h4>
-                <p className="text-sm text-muted-foreground">
-                    Filter by specific conditions.
+        <div className="grid gap-3 p-1">
+            <div className="space-y-1">
+                <h4 className="font-medium leading-none text-sm">Filters</h4>
+                <p className="text-[10px] text-muted-foreground">
+                    Refine your view.
                 </p>
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid gap-1.5">
                 {filters.map((filter, index) => (
                     <div
                         key={index}
-                        className="grid grid-cols-[1fr_1fr_1fr_40px] gap-2 items-center"
+                        className="grid grid-cols-[1fr_1fr_1.5fr_28px] gap-1.5 items-center"
                     >
                         {/* Field Selector */}
                         <Select
                             value={filter[0]}
                             onValueChange={(val) => updateFilterRow(index, 0, val)}
                         >
-                            <SelectTrigger className="h-8 w-full">
+                            <SelectTrigger className="h-7 w-full text-xs">
                                 <SelectValue placeholder="Field" />
                             </SelectTrigger>
                             <SelectContent>
                                 {fields.map((f) => (
-                                    <SelectItem key={f.value} value={f.value}>
+                                    <SelectItem key={f.value} value={f.value} className="text-xs">
                                         {f.label}
                                     </SelectItem>
                                 ))}
@@ -245,12 +244,12 @@ export function FrappeFilter({ fields, filters, onFiltersChange, onApply, onClea
                             value={filter[1]}
                             onValueChange={(val) => updateFilterRow(index, 1, val)}
                         >
-                            <SelectTrigger className="h-8 w-full">
+                            <SelectTrigger className="h-7 w-full text-xs">
                                 <SelectValue placeholder="Op" />
                             </SelectTrigger>
                             <SelectContent>
                                 {OPERATORS.map((op) => (
-                                    <SelectItem key={op.value} value={op.value}>
+                                    <SelectItem key={op.value} value={op.value} className="text-xs">
                                         {op.label}
                                     </SelectItem>
                                 ))}
@@ -258,7 +257,7 @@ export function FrappeFilter({ fields, filters, onFiltersChange, onApply, onClea
                         </Select>
 
                         {/* Value Input (Flexible Width) */}
-                        <div className="flex-1 w-full">
+                        <div className="flex-1 w-full min-w-0">
                             {renderValueInput(filter, index)}
                         </div>
 
@@ -266,10 +265,10 @@ export function FrappeFilter({ fields, filters, onFiltersChange, onApply, onClea
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 shrink-0"
+                            className="h-7 w-7 shrink-0"
                             onClick={() => removeFilterRow(index)}
                         >
-                            <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                            <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
                         </Button>
                     </div>
                 ))}
@@ -277,19 +276,19 @@ export function FrappeFilter({ fields, filters, onFiltersChange, onApply, onClea
                 <Button
                     variant="outline"
                     size="sm"
-                    className="w-full mt-2 border-dashed"
+                    className="w-full mt-1 border-dashed h-7 text-xs"
                     onClick={addFilterRow}
                 >
-                    <Plus className="mr-2 h-4 w-4" /> Add Filter
+                    <Plus className="mr-1.5 h-3 w-3" /> Add Filter
                 </Button>
             </div>
 
-            <div className="flex justify-between pt-2 border-t">
-                <Button variant="ghost" size="sm" onClick={onClear}>
+            <div className="flex justify-between pt-2 border-t mt-1">
+                <Button variant="ghost" size="sm" onClick={onClear} className="h-7 text-xs">
                     Clear All
                 </Button>
-                <Button size="sm" onClick={onApply}>
-                    Apply Filters
+                <Button size="sm" onClick={onApply} className="h-7 text-xs">
+                    Apply
                 </Button>
             </div>
         </div>

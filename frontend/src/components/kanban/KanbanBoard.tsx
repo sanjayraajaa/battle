@@ -17,41 +17,63 @@ import { KanbanCard } from "./KanbanCard";
 
 interface KanbanBoardProps {
     tasks: any[];
-    onTaskMove: (taskId: string, newStatus: string) => void;
+    onTaskMove: (taskId: string, newValue: string, field: string) => void;
     onTaskClick?: (task: any) => void;
     onAdd?: (status: string) => void;
+    groupBy?: 'status' | 'priority';
+    columnOptions?: Record<string, string[]>;
 }
 
-export function KanbanBoard({ tasks, onTaskMove, onTaskClick, onAdd }: KanbanBoardProps) {
-    const columns = useMemo(() => [
-        { id: "Open", title: "Open" },
-        { id: "Working", title: "Working" },
-        { id: "Pending Review", title: "Pending Review" },
-        { id: "Completed", title: "Completed" },
-        { id: "Cancelled", title: "Cancelled" },
-    ], []);
+export function KanbanBoard({ tasks, onTaskMove, onTaskClick, onAdd, groupBy = 'status', columnOptions }: KanbanBoardProps) {
+    const columns = useMemo(() => {
+        // Use dynamic options if provided
+        if (columnOptions && columnOptions[groupBy]) {
+            return columnOptions[groupBy].map(option => ({
+                id: option,
+                title: option
+            }));
+        }
+
+        // Fallback defaults
+        if (groupBy === 'priority') {
+            return [
+                { id: "Low", title: "Low" },
+                { id: "Medium", title: "Medium" },
+                { id: "High", title: "High" },
+                { id: "Urgent", title: "Urgent" },
+            ];
+        }
+        return [
+            { id: "Open", title: "Open" },
+            { id: "Working", title: "Working" },
+            { id: "Pending Review", title: "Pending Review" },
+            { id: "Completed", title: "Completed" },
+            { id: "Cancelled", title: "Cancelled" },
+        ];
+    }, [groupBy, columnOptions]);
 
     const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
 
     const [activeTask, setActiveTask] = useState<any>(null);
 
-    // Group tasks by status
-    const tasksByStatus = useMemo(() => {
+    // Group tasks by status or priority
+    const groupedTasks = useMemo(() => {
         const grouped: Record<string, any[]> = {};
         columns.forEach(col => grouped[col.id] = []);
 
         tasks.forEach(task => {
-            const status = task.status || "Open";
-            if (grouped[status]) {
-                grouped[status].push(task);
+            const key = task[groupBy] || (groupBy === 'priority' ? 'Medium' : 'Open');
+            if (grouped[key]) {
+                grouped[key].push(task);
             } else {
-                // Fallback for unknown status
-                if (!grouped["Open"]) grouped["Open"] = [];
-                grouped["Open"].push(task);
+                // Fallback for unknown status/priority
+                const fallback = groupBy === 'priority' ? 'Medium' : 'Open';
+                if (!grouped[fallback]) grouped[fallback] = [];
+                grouped[fallback].push(task);
             }
         });
         return grouped;
-    }, [tasks, columns]);
+    }, [tasks, columns, groupBy]);
 
 
     const sensors = useSensors(
@@ -82,18 +104,18 @@ export function KanbanBoard({ tasks, onTaskMove, onTaskClick, onAdd }: KanbanBoa
         if (activeTaskData) {
             // If dropped over a column
             if (columns.some(col => col.id === overId)) {
-                const newStatus = overId as string;
-                if (activeTaskData.status !== newStatus) {
-                    onTaskMove(activeTaskData.name, newStatus);
+                const newValue = overId as string;
+                if (activeTaskData[groupBy] !== newValue) {
+                    onTaskMove(activeTaskData.name, newValue, groupBy);
                 }
             }
             // If dropped over another task
             else {
                 const overTaskComp = event.over?.data?.current;
                 if (overTaskComp?.task) {
-                    const newStatus = overTaskComp.task.status;
-                    if (activeTaskData.status !== newStatus) {
-                        onTaskMove(activeTaskData.name, newStatus);
+                    const newValue = overTaskComp.task[groupBy];
+                    if (activeTaskData[groupBy] !== newValue) {
+                        onTaskMove(activeTaskData.name, newValue, groupBy);
                     }
                 }
             }
@@ -123,9 +145,9 @@ export function KanbanBoard({ tasks, onTaskMove, onTaskClick, onAdd }: KanbanBoa
                             <div key={col.id} className="w-[280px] h-full flex-shrink-0">
                                 <KanbanColumn
                                     column={col}
-                                    tasks={tasksByStatus[col.id] || []}
+                                    tasks={groupedTasks[col.id] || []}
                                     onTaskClick={onTaskClick}
-                                    onAdd={onAdd}
+                                    onAdd={groupBy === 'status' ? onAdd : undefined}
                                 />
                             </div>
                         ))}
