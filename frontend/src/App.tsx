@@ -1,11 +1,12 @@
 
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useFrappeAuth } from 'frappe-react-sdk';
-import { useEffect } from 'react';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import Tasks from './pages/Tasks';
+
+
 import { SidebarLayout } from './components/Sidebar';
 import { Toaster } from "@/components/ui/sonner"
 import './App.css';
@@ -69,7 +70,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/tasks" element={<Tasks />} />
-          {/* Add more private routes here */}
+
         </Route>
       </Routes>
       <Toaster />
