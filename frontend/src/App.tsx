@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import Tasks from './pages/Tasks';
+import Timesheet from './pages/Timesheet';
 
 
 import { SidebarLayout } from './components/Sidebar';
@@ -70,6 +71,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/tasks" element={<Tasks />} />
+          <Route path="/timesheet" element={<Timesheet />} />
 
         </Route>
       </Routes>

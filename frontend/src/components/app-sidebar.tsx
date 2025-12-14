@@ -12,6 +12,7 @@ import {
   AudioWaveform,
   FolderKanban,
   CheckSquare,
+  Clock,
 
 } from "lucide-react"
 
@@ -55,7 +56,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: CheckSquare,
       },
 
-
+      {
+        title: "Timesheet",
+        url: "/timesheet",
+        icon: Clock,
+      },
     ],
   }
 
